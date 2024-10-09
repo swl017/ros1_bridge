@@ -36,17 +36,17 @@
 #include "vision_msgs/msg/detection2_d_array.hpp"
 #include "vision_msgs/msg/detection2_d.hpp"
 
-#include "convertions.hpp"
+#include "conversions.hpp"
 
-ros::Publisher ros1_detection_2d_array_pub;
+ros::Publisher ros1_pub;
 void ros2Detection2DArrayCallback(const vision_msgs::msg::Detection2DArray::SharedPtr ros2_msg)
 {
   vision_msgs::Detection2DArray ros1_msg;
-  convert_2_to_1(ros2_msg, ros1_msg);
-  ros1_detection_2d_array_pub.publish(ros1_msg);
+  convert_2_to_1(*ros2_msg, ros1_msg);
+  ros1_pub.publish(ros1_msg);
 }
 
-rclcpp::Publisher<vision_msgs::msg::Detection2DArray>::SharedPtr ros2_detection_2d_array_pub;
+rclcpp::Publisher<vision_msgs::msg::Detection2DArray>::SharedPtr ros2_pub;
 void ros1Detection2DArrayCallback(const ros::MessageEvent<vision_msgs::Detection2DArray const> & ros1_msg_event)
 {
   const boost::shared_ptr<ros::M_string> & connection_header =
@@ -64,9 +64,9 @@ void ros1Detection2DArrayCallback(const ros::MessageEvent<vision_msgs::Detection
   // printf("I heard from ROS 1: [%s]\n", ros1_msg->data.c_str());
 
   vision_msgs::msg::Detection2DArray ros2_msg;
-  convert_1_to_2(ros1_msg, ros2_msg);
+  convert_1_to_2(*ros1_msg, ros2_msg);
   // printf("Passing along to ROS 2: [%s]\n", ros2_msg.data.c_str());
-  ros2_detection_2d_array_pub->publish(ros2_msg);
+  ros2_pub->publish(ros2_msg);
 }
 
 int main(int argc, char * argv[])
@@ -74,23 +74,23 @@ int main(int argc, char * argv[])
   // ROS 1 node and publisher
   ros::init(argc, argv, "ros_bridge");
   ros::NodeHandle ros1_node;
-  ros1_pub = ros1_node.advertise<vision_msgs::Detection2DArray>("chatter", 10);
+  ros1_pub = ros1_node.advertise<vision_msgs::Detection2DArray>("yolov7/yolov7", 10);
 
   // ROS 2 node and publisher
   rclcpp::init(argc, argv);
   auto ros2_node = rclcpp::Node::make_shared("ros_bridge");
   ros2_pub = ros2_node->create_publisher<vision_msgs::msg::Detection2DArray>(
-    "chatter", 10);
+    "yolov7/yolov7", 10);
 
   // ROS 1 subscriber
   ros::Subscriber ros1_sub = ros1_node.subscribe(
-    "chatter", 10, ros1Detection2DArrayCallback);
+    "yolov7/yolov7", 10, ros1Detection2DArrayCallback);
 
   // ROS 2 subscriber
   rclcpp::SubscriptionOptions options;
   options.ignore_local_publications = true;
   auto ros2_sub = ros2_node->create_subscription<vision_msgs::msg::Detection2DArray>(
-    "chatter", rclcpp::SensorDataQoS(), ros2Detection2DArrayCallback, options);
+    "yolov7/yolov7", rclcpp::SensorDataQoS(), ros2Detection2DArrayCallback, options);
 
   // ROS 1 asynchronous spinner
   ros::AsyncSpinner async_spinner(1);

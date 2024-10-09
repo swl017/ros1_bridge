@@ -65,7 +65,7 @@ for package_path in reversed([p for p in rpp if p]):
 import rosmsg  # noqa
 
 
-def generate_cpp(output_path, template_dir):
+def generate_cpp(output_path, template_dir, excluded_packages=[]):
     rospack = rospkg.RosPack()
     data = generate_messages(rospack)
     message_string_pairs = {
@@ -85,12 +85,13 @@ def generate_cpp(output_path, template_dir):
     unique_package_names = set(data['ros2_package_names_msg'] + data['ros2_package_names_srv'])
     # skip builtin_interfaces since there is a custom implementation
     unique_package_names -= {'builtin_interfaces'}
+    for excluded_package in excluded_packages:
+        unique_package_names -= {excluded_package}
     data['ros2_package_names'] = list(unique_package_names)
 
     template_file = os.path.join(template_dir, 'get_factory.cpp.em')
     output_file = os.path.join(output_path, 'get_factory.cpp')
     expand_template(template_file, data, output_file)
-
     for ros2_package_name in data['ros2_package_names']:
         data_pkg_hpp = {
             'ros2_package_name': ros2_package_name,

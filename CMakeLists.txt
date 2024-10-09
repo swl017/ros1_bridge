@@ -136,10 +136,19 @@ ament_index_get_resources(ros2_interface_packages "rosidl_interfaces")
 # actionlib_msgs is deprecated, but we will quiet the warning until the bridge has support for
 # ROS actions: https://github.com/ros2/design/issues/195
 set(actionlib_msgs_DEPRECATED_QUIET TRUE)
+set(EXCLUDED_PACKAGES
+  vision_msgs
+)
+
+set(EXCLUDED_PACKAGES1
+  builtin_interfaces
+  ${EXCLUDED_PACKAGES}
+)
 foreach(package_name ${ros2_interface_packages})
   find_package(${package_name} QUIET REQUIRED)
   message(STATUS "Found ${package_name}: ${${package_name}_VERSION} (${${package_name}_DIR})")
-  if(NOT ("${package_name}" STREQUAL "builtin_interfaces" OR "${package_name}" STREQUAL "vision_msgs"))
+  if(NOT ${package_name} IN_LIST EXCLUDED_PACKAGES1)
+  # if(NOT ("${package_name}" STREQUAL "builtin_interfaces" OR "${package_name}" STREQUAL "vision_msgs"))
     list(APPEND generated_files "${generated_path}/${package_name}_factories.cpp")
     list(APPEND generated_files "${generated_path}/${package_name}_factories.hpp")
     foreach(interface_file ${${package_name}_IDL_FILES})
@@ -167,11 +176,14 @@ set(target_dependencies
 
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
+string(REPLACE ";" " " EXCLUDED_PACKAGES_STR "${EXCLUDED_PACKAGES}")
 add_custom_command(
   OUTPUT ${generated_files}
   COMMAND Python3::Interpreter
   ARGS bin/ros1_bridge_generate_factories
-    --output-path "${generated_path}" --template-dir resource
+    --output-path "${generated_path}"
+    --template-dir resource
+    --excluded-packages ${EXCLUDED_PACKAGES_STR}
   DEPENDS ${target_dependencies}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMENT "Generating factories for interface types")
@@ -217,26 +229,24 @@ custom_executable(simple_bridge "src/simple_bridge.cpp"
   ROS1_DEPENDENCIES
   TARGET_DEPENDENCIES "std_msgs")
 
-custom_executable(simple_bridge_vision_msgs 
-  "src/custom_bridge/vision_msgs_detection_2d_array/custom_bridge.cpp"
+custom_executable(detection_2d_array_bridge 
+  "src/custom_bridge/vision_msgs/detection_2d_array_bridge.cpp"
   ROS1_DEPENDENCIES
   TARGET_DEPENDENCIES "std_msgs" "vision_msgs")
-# file(GLOB vision_msgs_factory_files
-#   "src/factory_files/vision_msgs/*"
-# )
+target_include_directories(detection_2d_array_bridge PUBLIC
+  "src/custom_bridge/vision_msgs")
+
 add_library(${PROJECT_NAME} SHARED
   "src/builtin_interfaces_factories.cpp"
   "src/convert_builtin_interfaces.cpp"
   "src/bridge.cpp"
   ${generated_files})
-  # ${vision_msgs_factory_files})
+list(REMOVE_ITEM ros2_interface_packages ${EXCLUDED_PACKAGES})
 ament_target_dependencies(${PROJECT_NAME}
   ${prefixed_ros1_message_packages}
   ${ros2_interface_packages}
   "rclcpp"
-  # "vision_msgs"
   "ros1_roscpp"
-  # "ros1_vision_msgs"
   "ros1_std_msgs")
 
 install(TARGETS ${PROJECT_NAME}

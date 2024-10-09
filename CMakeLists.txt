@@ -139,7 +139,7 @@ set(actionlib_msgs_DEPRECATED_QUIET TRUE)
 foreach(package_name ${ros2_interface_packages})
   find_package(${package_name} QUIET REQUIRED)
   message(STATUS "Found ${package_name}: ${${package_name}_VERSION} (${${package_name}_DIR})")
-  if(NOT "${package_name}" STREQUAL "builtin_interfaces")
+  if(NOT "${package_name}" STREQUAL "builtin_interfaces" AND NOT "${package_name}" STREQUAL "vision_msgs")
     list(APPEND generated_files "${generated_path}/${package_name}_factories.cpp")
     list(APPEND generated_files "${generated_path}/${package_name}_factories.hpp")
     foreach(interface_file ${${package_name}_IDL_FILES})
@@ -217,16 +217,22 @@ custom_executable(simple_bridge "src/simple_bridge.cpp"
   ROS1_DEPENDENCIES
   TARGET_DEPENDENCIES "std_msgs")
 
+file(GLOB vision_msgs_factory_files
+  "src/factory_files/vision_msgs/*"
+)
 add_library(${PROJECT_NAME} SHARED
   "src/builtin_interfaces_factories.cpp"
   "src/convert_builtin_interfaces.cpp"
   "src/bridge.cpp"
-  ${generated_files})
+  ${generated_files}
+  ${vision_msgs_factory_files})
 ament_target_dependencies(${PROJECT_NAME}
   ${prefixed_ros1_message_packages}
   ${ros2_interface_packages}
   "rclcpp"
+  "vision_msgs"
   "ros1_roscpp"
+  "ros1_vision_msgs"
   "ros1_std_msgs")
 
 install(TARGETS ${PROJECT_NAME}

@@ -236,6 +236,20 @@ custom_executable(detection_2d_array_bridge
 target_include_directories(detection_2d_array_bridge PUBLIC
   "src/custom_bridge/vision_msgs")
 
+custom_executable(detection_2d_array_bridge_uav1 
+  "src/custom_bridge/vision_msgs/detection_2d_array_bridge_uav1.cpp"
+  ROS1_DEPENDENCIES
+  TARGET_DEPENDENCIES "std_msgs" "vision_msgs")
+target_include_directories(detection_2d_array_bridge_uav1 PUBLIC
+  "src/custom_bridge/vision_msgs")
+
+custom_executable(detection_2d_array_bridge_uav2 
+  "src/custom_bridge/vision_msgs/detection_2d_array_bridge_uav2.cpp"
+  ROS1_DEPENDENCIES
+  TARGET_DEPENDENCIES "std_msgs" "vision_msgs")
+target_include_directories(detection_2d_array_bridge_uav2 PUBLIC
+  "src/custom_bridge/vision_msgs")
+
 add_library(${PROJECT_NAME} SHARED
   "src/builtin_interfaces_factories.cpp"
   "src/convert_builtin_interfaces.cpp"

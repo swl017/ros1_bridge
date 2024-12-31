@@ -53,7 +53,7 @@ void ros1Detection2DArrayCallback(const ros::MessageEvent<vision_msgs::Detection
     ros1_msg_event.getConnectionHeaderPtr();
   std::string key = "callerid";
   if (connection_header->find(key) != connection_header->end()) {
-    if (connection_header->at(key) == "/detection_2d_array_bridge") {
+    if (connection_header->at(key) == "/uav2_detection_2d_array_bridge") {
       printf("    I heard from ROS 1 from myself\n");
       return;
     }
@@ -72,25 +72,25 @@ void ros1Detection2DArrayCallback(const ros::MessageEvent<vision_msgs::Detection
 int main(int argc, char * argv[])
 {
   // ROS 1 node and publisher
-  ros::init(argc, argv, "detection_2d_array_bridge");
+  ros::init(argc, argv, "uav2_detection_2d_array_bridge");
   ros::NodeHandle ros1_node;
-  ros1_pub = ros1_node.advertise<vision_msgs::Detection2DArray>("det2d", 10);
+  ros1_pub = ros1_node.advertise<vision_msgs::Detection2DArray>("/uav2/yolo_result_vision", 10);
 
   // ROS 2 node and publisher
   rclcpp::init(argc, argv);
-  auto ros2_node = rclcpp::Node::make_shared("detection_2d_array_bridge");
+  auto ros2_node = rclcpp::Node::make_shared("uav2_detection_2d_array_bridge");
   ros2_pub = ros2_node->create_publisher<vision_msgs::msg::Detection2DArray>(
-    "det2d", 10);
+    "/uav2/yolo_result_vision", 10);
 
   // ROS 1 subscriber
   ros::Subscriber ros1_sub = ros1_node.subscribe(
-    "det2d", 10, ros1Detection2DArrayCallback);
+    "/uav2/yolo_result_vision", 10, ros1Detection2DArrayCallback);
 
   // ROS 2 subscriber
   rclcpp::SubscriptionOptions options;
   options.ignore_local_publications = true;
   auto ros2_sub = ros2_node->create_subscription<vision_msgs::msg::Detection2DArray>(
-    "det2d", rclcpp::SensorDataQoS(), ros2Detection2DArrayCallback, options);
+    "/uav2/yolo_result_vision", rclcpp::SensorDataQoS(), ros2Detection2DArrayCallback, options);
 
   // ROS 1 asynchronous spinner
   ros::AsyncSpinner async_spinner(1);

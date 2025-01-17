@@ -95,8 +95,8 @@ void convert_1_to_2(
   vision_msgs::msg::BoundingBox2D & ros2_msg
 )
 {
-  ros2_msg.center.x = ros1_msg.center.x;
-  ros2_msg.center.y = ros1_msg.center.y;
+  ros2_msg.center.position.x = ros1_msg.center.x;
+  ros2_msg.center.position.y = ros1_msg.center.y;
   ros2_msg.center.theta = ros1_msg.center.theta;
   ros2_msg.size_x = ros1_msg.size_x;
   ros2_msg.size_y = ros1_msg.size_y;
@@ -107,8 +107,8 @@ void convert_2_to_1(
   vision_msgs::BoundingBox2D & ros1_msg
 )
 {
-  ros1_msg.center.x = ros2_msg.center.x;
-  ros1_msg.center.y = ros2_msg.center.y;
+  ros1_msg.center.x = ros2_msg.center.position.x;
+  ros1_msg.center.y = ros2_msg.center.position.y;
   ros1_msg.center.theta = ros2_msg.center.theta;
   ros1_msg.size_x = ros2_msg.size_x;
   ros1_msg.size_y = ros2_msg.size_y;
